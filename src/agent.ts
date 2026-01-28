@@ -1,6 +1,6 @@
 // Simple Conversational AI Agent
 
-import { Annotation } from "@langchain/langgraph";
+import { Annotation, StateGraph, START, END } from "@langchain/langgraph";
 import { BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { ChatOpenAI } from "@langchain/openai";
@@ -76,3 +76,17 @@ export async function conversationNode(
   // Return the response to be added to state messages
   return { messages: [response] };
 }
+
+/**
+ * Create and compile the conversation graph.
+ * Flow: START → conversation → END
+ */
+const workflow = new StateGraph(ConversationState)
+  .addNode("conversation", conversationNode)
+  .addEdge(START, "conversation")
+  .addEdge("conversation", END);
+
+/**
+ * Compiled graph exported for use with LangSmith Studio.
+ */
+export const graph = workflow.compile();
