@@ -56,3 +56,23 @@ export function createLLM(): BaseChatModel {
     model: modelName || "gpt-4o-mini",
   });
 }
+
+/**
+ * Conversation node that invokes the LLM with the current messages.
+ * Prepends the system message to the conversation and returns the LLM response.
+ */
+export async function conversationNode(
+  state: typeof ConversationState.State
+): Promise<typeof ConversationState.Update> {
+  const llm = createLLM();
+  const systemMessage = createSystemMessage();
+
+  // Prepend system message to the conversation messages
+  const messagesWithSystem = [systemMessage, ...state.messages];
+
+  // Invoke the LLM and get the response
+  const response = await llm.invoke(messagesWithSystem);
+
+  // Return the response to be added to state messages
+  return { messages: [response] };
+}
