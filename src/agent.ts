@@ -1,10 +1,29 @@
 // Simple Conversational AI Agent
 
 import { Annotation } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
+import { BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatAnthropic } from "@langchain/anthropic";
+
+/**
+ * Default system prompt for the conversational agent.
+ */
+const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant.";
+
+/**
+ * Gets the system prompt from environment variable or returns the default.
+ */
+export function getSystemPrompt(): string {
+  return process.env.SYSTEM_PROMPT || DEFAULT_SYSTEM_PROMPT;
+}
+
+/**
+ * Creates a SystemMessage with the configured system prompt.
+ */
+export function createSystemMessage(): SystemMessage {
+  return new SystemMessage(getSystemPrompt());
+}
 
 /**
  * Conversation state schema using LangGraph's Annotation.
