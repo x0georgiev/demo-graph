@@ -9,6 +9,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
+    "setup-db": "tsx migrations/setup-db.ts",
     "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.57.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.0"
   }
 }
