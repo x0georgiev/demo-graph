@@ -16,7 +16,8 @@
 import { SystemMessage } from "@langchain/core/messages";
 import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import type { AgentStateType, AgentStateUpdate } from "../state.js";
-import { createLLM } from "../llm.js";
+import { getLLMService } from "../providers/index.js";
+import type { Patient } from "../types/index.js";
 
 /**
  * Default system prompt for the conversational agent.
@@ -43,31 +44,42 @@ function getMemoryNamespace(clientId: string): string[] {
 }
 
 /**
- * Gets the system prompt from environment variable or returns the default.
+ * Gets the system prompt from the provided value, environment variable, or default.
  *
+ * @param systemPrompt - Optional system prompt from configurable
  * @returns The configured system prompt
  */
-export function getSystemPrompt(): string {
-  return process.env.SYSTEM_PROMPT ?? DEFAULT_SYSTEM_PROMPT;
+export function getSystemPrompt(systemPrompt?: string): string {
+  return systemPrompt ?? process.env.SYSTEM_PROMPT ?? DEFAULT_SYSTEM_PROMPT;
 }
 
 /**
  * Creates a SystemMessage with the configured system prompt,
- * including any available long-term memories.
+ * including any available long-term memories and user data.
  *
  * @param memories - Optional long-term memories about the user
+ * @param user - Optional user data fetched from Semble
  * @returns SystemMessage instance
  */
-export function createSystemMessage(memories?: string): SystemMessage {
-  const basePrompt = getSystemPrompt();
+export function createSystemMessage(memories?: string, user?: Patient | null, systemPrompt?: string): SystemMessage {
+  let prompt = getSystemPrompt(systemPrompt);
 
-  if (memories) {
-    return new SystemMessage(
-      `${basePrompt}\n\nWhat you remember about this user:\n${memories}`
-    );
+  if (user) {
+    const userDetails = [
+      `User Name: ${user.firstName} ${user.lastName}`,
+      user.email ? `Email: ${user.email}` : undefined,
+      user.dob ? `DOB: ${user.dob}` : undefined,
+      user.gender ? `Gender: ${user.gender}` : undefined,
+    ].filter(Boolean).join("\n");
+    
+    prompt += `\n\nHere is some information about the user you are talking to:\n${userDetails}`;
   }
 
-  return new SystemMessage(basePrompt);
+  if (memories) {
+    prompt += `\n\nWhat you remember about this user:\n${memories}`;
+  }
+
+  return new SystemMessage(prompt);
 }
 
 /**
@@ -85,7 +97,9 @@ export async function conversationNode(
   state: AgentStateType,
   config: LangGraphRunnableConfig
 ): Promise<AgentStateUpdate> {
-  const llm = createLLM();
+  // Get model and system prompt from configurable
+  const modelName = config.configurable?.model as string | undefined;
+  const llm = getLLMService().getModel(modelName);
 
   // Get client ID from config (defaults to "default" if not provided)
   const clientId = (config.configurable?.clientId as string) ?? "default";
@@ -114,12 +128,12 @@ export async function conversationNode(
       }
     } catch {
       // Store search failed, continue without memories
-      console.warn("Failed to retrieve memories from store");
     }
   }
 
-  // Create system message with memories
-  const systemMessage = createSystemMessage(memoriesText);
+  // Create system message with memories and user data
+  const systemPrompt = config.configurable?.systemPrompt as string | undefined;
+  const systemMessage = createSystemMessage(memoriesText, state.user, systemPrompt);
 
   // Invoke the LLM with system message + conversation messages
   const response = await llm.invoke([systemMessage, ...state.messages]);
@@ -140,9 +154,8 @@ export async function conversationNode(
           createdAt: new Date().toISOString(),
         };
         await config.store.put(namespace, memoryId, memoryItem);
-        console.log(`Stored memory for client ${clientId}: ${content}`);
       } catch {
-        console.warn("Failed to store memory");
+        // Ignore store errors
       }
     }
   }

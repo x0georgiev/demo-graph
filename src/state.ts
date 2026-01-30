@@ -7,6 +7,7 @@
 
 import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 import type { BaseMessage } from "@langchain/core/messages";
+import type { Patient } from "./types/index.js";
 
 /**
  * Agent state with "messages" key.
@@ -20,6 +21,10 @@ export const AgentState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
     reducer: messagesStateReducer,
     default: () => [],
+  }),
+  user: Annotation<Patient | null>({
+    reducer: (x, y) => y ?? x,
+    default: () => null,
   }),
 });
 

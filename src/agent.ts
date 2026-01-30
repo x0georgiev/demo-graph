@@ -16,7 +16,8 @@ export {
   type AgentStateType,
   type AgentStateUpdate,
 } from "./state.js";
-export { createLLM, type LLMConfig } from "./llm.js";
+export { getSembleService, getLLMService, resetProviders } from "./providers/index.js";
+export type { Patient, ISembleService, ILLMService } from "./types/index.js";
 export {
   conversationNode,
   getSystemPrompt,

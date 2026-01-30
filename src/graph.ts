@@ -14,13 +14,16 @@ import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { PostgresStore } from "@langchain/langgraph-checkpoint-postgres/store";
 import { AgentState } from "./state.js";
 import { conversationNode } from "./nodes/conversation.js";
+import { fetchUserNode } from "./nodes/fetch-user.js";
 
 /**
  * Create the conversation workflow.
  */
 const workflow = new StateGraph(AgentState)
+  .addNode("fetchUser", fetchUserNode)
   .addNode("conversation", conversationNode)
-  .addEdge(START, "conversation")
+  .addEdge(START, "fetchUser")
+  .addEdge("fetchUser", "conversation")
   .addEdge("conversation", END);
 
 /**
