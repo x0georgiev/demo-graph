@@ -1,26 +1,29 @@
 {
   "name": "simple-conversational-ai-agent",
-  "version": "1.0.0",
-  "description": "A minimal conversational AI assistant built with LangGraph.js",
+  "version": "2.0.0",
+  "description": "A minimal conversational AI assistant built with LangGraph.js using OpenRouter",
   "type": "module",
-  "main": "dist/agent.js",
+  "main": "src/agent.ts",
   "scripts": {
+    "dev": "npx @langchain/langgraph-cli dev",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
-    "@langchain/anthropic": "^0.3.0",
-    "@langchain/core": "^0.3.0",
-    "@langchain/langgraph": "^0.2.0",
-    "@langchain/openai": "^0.3.0"
+    "@langchain/core": "^1.1.17",
+    "@langchain/langgraph": "^1.1.2",
+    "@langchain/langgraph-checkpoint-postgres": "^1.0.0",
+    "@langchain/openai": "^1.2.3",
+    "dotenv": "^17.2.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "eslint": "^8.57.0",
+    "@types/node": "^20.19.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "typescript": "^5.4.0"
+    "eslint": "^8.57.0",
+    "typescript": "^5.9.0"
   }
 }
